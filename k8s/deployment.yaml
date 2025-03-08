@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orders
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: orders
+  template:
+    metadata:
+      labels:
+        app: orders
+    spec:
+      containers:
+      - name: orders
+        image: elontusk404/orders-fastapi:latest
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: orders-secrets
+              key: DB_HOST
+        - name: DB_PORT
+          valueFrom:
+            secretKeyRef:
+              name: orders-secrets
+              key: DB_PORT
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: orders-secrets
+              key: DB_USER
+        - name: DB_PASS
+          valueFrom:
+            secretKeyRef:
+              name: orders-secrets
+              key: DB_PASS
+        - name: DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: orders-secrets
+              key: DB_NAME
+        - name: RABBITMQ
+          valueFrom:
+            secretKeyRef:
+              name: orders-secrets
+              key: RABBITMQ
+        - name: PUBLIC_KEY
+          valueFrom:
+            secretKeyRef:
+              name: orders-secrets
+              key: PUBLIC_KEY
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8000
+          initialDelaySeconds: 10  
+          periodSeconds: 30        
+          timeoutSeconds: 5       
+          failureThreshold: 3      
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8000
+          initialDelaySeconds: 5   
+          periodSeconds: 10        
+          timeoutSeconds: 5        
+          failureThreshold: 3      
